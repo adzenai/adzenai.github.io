@@ -84,23 +84,47 @@
 </div>
 
 <script>
-(function(){
-  function init(){
-    document.querySelectorAll('.az .ad-badge').forEach(function(badge){
-      var wrap=badge.closest('.ad-wrap');
-      var tip=wrap&&wrap.querySelector('.ad-tip');
-      if(!wrap||!tip)return;
-      function show(){tip.style.display='block';}
-      function hide(){tip.style.display='none';}
-      wrap.addEventListener('mouseenter',show);
-      wrap.addEventListener('mouseleave',function(e){if(!wrap.contains(e.relatedTarget))hide();});
-      badge.addEventListener('focus',show);
-      badge.addEventListener('blur',function(e){if(!wrap.contains(e.relatedTarget))hide();});
-      tip.addEventListener('mouseenter',show);
-      tip.addEventListener('mouseleave',hide);
-      wrap.addEventListener('keydown',function(e){if(e.key==='Escape'){hide();badge.blur();}});
-    });
-  }
-  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
-})();
-</script>
+  (function(){
+    function init(){
+      document.querySelectorAll('.az .ad-badge').forEach(function(badge){
+        var wrap = badge.closest('.ad-wrap');
+        var tip = wrap && wrap.querySelector('.ad-tip');
+        var hideTimeout; // This tracks the grace period
+  
+        if(!wrap || !tip) return;
+  
+        function show(){
+          clearTimeout(hideTimeout); // Stop it from closing if the mouse returns
+          tip.style.display = 'block';
+        }
+  
+        function hide(e){
+          // Only trigger the hide if the mouse actually leaves the whole unit
+          if (e.relatedTarget && wrap.contains(e.relatedTarget)) return;
+  
+          // Wait 250ms (a quarter second) before closing
+          hideTimeout = setTimeout(function() {
+            tip.style.display = 'none';
+          }, 250); 
+        }
+  
+        wrap.addEventListener('mouseenter', show);
+        wrap.addEventListener('mouseleave', hide);
+        
+        badge.addEventListener('focus', show);
+        badge.addEventListener('blur', hide);
+  
+        tip.addEventListener('mouseenter', show);
+        tip.addEventListener('mouseleave', hide);
+  
+        wrap.addEventListener('keydown', function(e){
+          if(e.key === 'Escape'){
+            tip.style.display = 'none';
+            badge.blur();
+          }
+        });
+      });
+    }
+    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
+  })();
+  </script>
